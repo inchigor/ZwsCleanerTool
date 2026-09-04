@@ -2,171 +2,496 @@
 <html lang="ru">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>Очистка скрытых символов + отчёт</title>
-  <!-- Favicon: 🧹 -->
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <meta name="description" content="Локальный инструмент для поиска, анализа и очистки скрытых и необычных Unicode-символов.">
+  <title>Очистка скрытых символов</title>
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ctext y='50' font-size='48'%3E🧹%3C/text%3E%3C/svg%3E">
   <style>
     :root {
-      --bg: #f9f9f9;
-      --fg: #111;
-      --area-bg: #fff;
-      --border: #ccc;
-      --highlight-bg: #fffbe6;
+      --bg: #f7f7f8;
+      --surface: #ffffff;
+      --text: #1f2328;
+      --muted: #656d76;
+      --border: #d0d7de;
+      --button-hover: #f3f4f6;
+      --remove-bg: #ffdddd;
+      --remove-text: #8a1c1c;
+      --replace-bg: #fff1ad;
+      --replace-text: #6b5600;
+      --keep-bg: #dcecff;
+      --keep-text: #1d4f7a;
+      --success: #18794e;
+      --focus: #0969da;
     }
+
     body.dark {
-      --bg: #2e2e2e;
-      --fg: #ddd;
-      --area-bg: #3a3a3a;
-      --border: #555;
-      --highlight-bg: #555;
+      --bg: #17181a;
+      --surface: #222326;
+      --text: #e6e6e6;
+      --muted: #a6a6a6;
+      --border: #44474c;
+      --button-hover: #2c2e32;
+      --remove-bg: #5e3030;
+      --remove-text: #ffd1d1;
+      --replace-bg: #5d5326;
+      --replace-text: #fff2aa;
+      --keep-bg: #29465f;
+      --keep-text: #d3ebff;
+      --success: #6fdd9f;
+      --focus: #58a6ff;
     }
-    *,*::before,*::after { box-sizing: border-box; }
+
+    *, *::before, *::after { box-sizing: border-box; }
+
     body {
-      margin:0; padding:20px;
-      max-width:900px; margin:auto;
-      background: var(--bg); color: var(--fg);
-      font-family: sans-serif;
-      transition: .3s;
+      max-width: 920px;
+      margin: 0 auto;
+      padding: 24px 20px 40px;
+      background: var(--bg);
+      color: var(--text);
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      line-height: 1.5;
     }
-    #themeToggle {
-      position: fixed; top:10px; right:10px;
-      background:var(--area-bg); color:var(--fg);
-      border:1px solid var(--border); border-radius:4px;
-      padding:6px 10px; cursor:pointer;
+
+    .topbar {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 18px;
     }
+
+    h1 { margin: 0 0 6px; font-size: 28px; line-height: 1.2; }
+    h2 { margin: 26px 0 10px; font-size: 18px; }
+    p { margin: 0 0 10px; }
+
+    .description, .privacy, .counter, .details, .empty { color: var(--muted); }
+    .privacy { font-size: 13px; }
+
+    .panel {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 14px;
+    }
+
     textarea {
-      width:100%; height:150px;
-      font-family:monospace; font-size:14px;
-      padding:10px; margin-bottom:10px;
-      background:var(--area-bg); color:var(--fg);
-      border:1px solid var(--border); border-radius:6px;
-      resize:vertical; transition:.3s;
+      width: 100%;
+      min-height: 150px;
+      padding: 12px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: var(--surface);
+      color: var(--text);
+      font: 14px/1.5 ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      resize: vertical;
     }
+
+    textarea:focus-visible, button:focus-visible {
+      outline: 2px solid var(--focus);
+      outline-offset: 2px;
+    }
+
+    #output { min-height: 120px; }
+    .counter { margin: 8px 0 12px; font-size: 14px; }
+
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 2px;
+    }
+
     button {
-      background:var(--area-bg); color:var(--fg);
-      border:1px solid var(--border); border-radius:4px;
-      padding:10px 20px; margin:0 5px 10px 0;
-      cursor:pointer; transition:.3s;
+      padding: 9px 14px;
+      border: 1px solid var(--border);
+      border-radius: 7px;
+      background: var(--surface);
+      color: var(--text);
+      font: inherit;
+      cursor: pointer;
     }
-    .counter { margin-bottom:10px; }
+
+    button:hover { background: var(--button-hover); }
+
+    #themeToggle {
+      flex: 0 0 auto;
+      padding: 7px 10px;
+      font-size: 16px;
+      line-height: 1;
+    }
+
+    #copyStatus { min-height: 1em; color: var(--success); font-size: 13px; }
+
+    .legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin: 0 0 10px;
+      font-size: 13px;
+    }
+
+    .badge, .char {
+      display: inline-block;
+      border-radius: 5px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    }
+
+    .badge { padding: 3px 7px; }
+
+    .char {
+      margin: 0 1px;
+      padding: 1px 4px;
+      border: 0;
+      font-size: inherit;
+      font-weight: 650;
+      cursor: pointer;
+    }
+
+    .remove { background: var(--remove-bg); color: var(--remove-text); }
+    .replace { background: var(--replace-bg); color: var(--replace-text); }
+    .keep { background: var(--keep-bg); color: var(--keep-text); }
+
     #highlighted {
-      white-space:pre-wrap; background:var(--highlight-bg);
-      border:1px dashed var(--border); padding:10px;
-      font-family:monospace; font-size:14px; border-radius:6px;
-      margin-bottom:10px; transition:.3s;
+      min-height: 54px;
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+      font: 14px/1.6 ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
     }
-    .highlight { background:yellow; cursor:pointer; }
-    #charList { margin-bottom:20px; list-style:disc inside; }
-    #output {
-      width:100%; height:100px; font-family:monospace; font-size:14px;
-      padding:10px; background:var(--area-bg); color:var(--fg);
-      border:1px solid var(--border); border-radius:6px;
-      resize:vertical; transition:.3s;
+
+    .details { min-height: 1.5em; margin-top: 9px; font-size: 13px; }
+    #charList { margin: 0; padding-left: 22px; }
+    #charList li { margin: 5px 0; }
+    .report-action { font-weight: 600; }
+
+    @media (max-width: 640px) {
+      body { padding: 18px 14px 32px; }
+      h1 { font-size: 24px; }
+      .topbar { gap: 10px; }
+      .actions button { flex: 1 1 auto; }
     }
   </style>
 </head>
 <body>
-  <button id="themeToggle">🌓</button>
-  <h2>🧹 Очистка скрытых символов + отчёт</h2>
-  <p>Вставьте текст — подсветка, отчёт и очистка сразу👇</p>
+  <div class="topbar">
+    <div>
+      <h1>🧹 Очистка скрытых символов</h1>
+      <p class="description">Вставьте текст - необычные Unicode-символы будут найдены, а безопасный результат подготовится автоматически.</p>
+      <p class="privacy">Всё работает локально в браузере. Текст никуда не отправляется.</p>
+    </div>
+    <button id="themeToggle" type="button" aria-label="Переключить тему" title="Переключить тему">🌓</button>
+  </div>
 
-  <textarea id="input" oninput="handleInput()" spellcheck="false"></textarea>
-  <div class="counter" id="counter"></div>
-  <button onclick="copyOutput()">📋 Скопировать очищенный текст</button>
-  <button onclick="clearInput()">🗑 Очистить</button>
+  <textarea id="input" placeholder="Вставьте текст сюда..." spellcheck="false" aria-label="Исходный текст"></textarea>
+  <div class="counter" id="counter">Вставьте текст для проверки</div>
 
-  <p>Скрытые символы:</p>
-  <div id="highlighted"></div>
+  <div class="actions">
+    <button id="copyButton" type="button">📋 Скопировать очищенный текст</button>
+    <button id="clearButton" type="button">🗑 Очистить</button>
+    <span id="copyStatus" role="status" aria-live="polite"></span>
+  </div>
 
-  <p>Отчёт по символам:</p>
-  <ul id="charList"></ul>
+  <h2>Найденные символы</h2>
+  <div class="legend" aria-label="Обозначения">
+    <span class="badge remove">Удаляется</span>
+    <span class="badge replace">Заменяется</span>
+    <span class="badge keep">Сохраняется</span>
+  </div>
+  <div class="panel">
+    <div id="highlighted" class="empty">Здесь появится текст с отмеченными символами.</div>
+    <div id="charDetails" class="details">Нажмите на отмеченный символ, чтобы увидеть его название и действие.</div>
+  </div>
 
-  <p>Очищенный текст:</p>
-  <textarea id="output" readonly></textarea>
+  <h2>Отчёт</h2>
+  <div class="panel">
+    <ul id="charList">
+      <li>Скрытых или необычных символов не найдено</li>
+    </ul>
+  </div>
+
+  <h2>Очищенный текст</h2>
+  <textarea id="output" readonly placeholder="Здесь появится очищенный текст" aria-label="Очищенный текст"></textarea>
 
   <script>
-    // Theme toggle
-    document.getElementById('themeToggle')
-      .onclick = () => document.body.classList.toggle('dark');
+    const input = document.getElementById('input');
+    const output = document.getElementById('output');
+    const counter = document.getElementById('counter');
+    const highlighted = document.getElementById('highlighted');
+    const charDetails = document.getElementById('charDetails');
+    const charList = document.getElementById('charList');
+    const copyButton = document.getElementById('copyButton');
+    const clearButton = document.getElementById('clearButton');
+    const copyStatus = document.getElementById('copyStatus');
+    const themeToggle = document.getElementById('themeToggle');
 
-    // Символы
-    const invisibleChars = {
-      '\u200B':'Zero Width Space', '\u200C':'Zero Width Non-Joiner',
-      '\u200D':'Zero Width Joiner', '\u200E':'Left-to-Right Mark',
-      '\u200F':'Right-to-Left Mark','\uFEFF':'Zero Width No-Break Space',
-      '\u2060':'Word Joiner','\u00A0':'Non-breaking Space','\u2014':'Em Dash'
-    };
-    for(let i=0;i<32;i++){
-      if(![9,10,13].includes(i)){
-        invisibleChars[String.fromCharCode(i)] =
-          `Control U+${i.toString(16).padStart(4,'0')}`;
+    const rules = new Map([
+      [0x00A0, { name: 'Non-breaking Space', action: 'replace', replacement: ' ' }],
+      [0x202F, { name: 'Narrow No-Break Space', action: 'replace', replacement: ' ' }],
+      [0x2007, { name: 'Figure Space', action: 'replace', replacement: ' ' }],
+      [0x2014, { name: 'Em Dash', action: 'replace', replacement: '-' }],
+      [0x2013, { name: 'En Dash', action: 'replace', replacement: '-' }],
+      [0x2212, { name: 'Minus Sign', action: 'replace', replacement: '-' }],
+      [0x200B, { name: 'Zero Width Space', action: 'remove' }],
+      [0xFEFF, { name: 'Zero Width No-Break Space / BOM', action: 'remove' }],
+      [0x2060, { name: 'Word Joiner', action: 'remove' }],
+      [0x00AD, { name: 'Soft Hyphen', action: 'remove' }],
+      [0x061C, { name: 'Arabic Letter Mark', action: 'remove' }],
+      [0x200E, { name: 'Left-to-Right Mark', action: 'remove' }],
+      [0x200F, { name: 'Right-to-Left Mark', action: 'remove' }],
+      [0x200C, { name: 'Zero Width Non-Joiner', action: 'keep' }],
+      [0x200D, { name: 'Zero Width Joiner', action: 'keep' }]
+    ]);
+
+    const bidiRanges = [
+      [0x202A, 0x202E],
+      [0x2066, 0x2069],
+      [0x206A, 0x206F]
+    ];
+
+    function codePointHex(codePoint) {
+      return `U+${codePoint.toString(16).toUpperCase().padStart(4, '0')}`;
+    }
+
+    function isBidiControl(codePoint) {
+      return bidiRanges.some(([start, end]) => codePoint >= start && codePoint <= end);
+    }
+
+    function isBadAsciiControl(codePoint) {
+      return (
+        (codePoint >= 0x00 && codePoint <= 0x08) ||
+        codePoint === 0x0B ||
+        codePoint === 0x0C ||
+        (codePoint >= 0x0E && codePoint <= 0x1F) ||
+        codePoint === 0x7F
+      );
+    }
+
+    function classifyCharacter(char) {
+      const codePoint = char.codePointAt(0);
+
+      if (rules.has(codePoint)) {
+        return { codePoint, ...rules.get(codePoint) };
+      }
+
+      if (isBidiControl(codePoint)) {
+        return { codePoint, name: 'Bidirectional Control Character', action: 'remove' };
+      }
+
+      if (isBadAsciiControl(codePoint)) {
+        return { codePoint, name: 'ASCII Control Character', action: 'remove' };
+      }
+
+      return null;
+    }
+
+    function actionName(action) {
+      if (action === 'remove') return 'удаляется';
+      if (action === 'replace') return 'заменяется';
+      return 'сохраняется';
+    }
+
+    function analyseText(text) {
+      const characters = Array.from(text);
+      const grouped = new Map();
+      let cleaned = '';
+      let removed = 0;
+      let replaced = 0;
+      let kept = 0;
+
+      characters.forEach((char, index) => {
+        const rule = classifyCharacter(char);
+
+        if (!rule) {
+          cleaned += char;
+          return;
+        }
+
+        const key = `${rule.codePoint}-${rule.action}`;
+        if (!grouped.has(key)) {
+          grouped.set(key, { ...rule, positions: [] });
+        }
+        grouped.get(key).positions.push(index + 1);
+
+        if (rule.action === 'remove') {
+          removed += 1;
+          return;
+        }
+
+        if (rule.action === 'replace') {
+          replaced += 1;
+          cleaned += rule.replacement;
+          return;
+        }
+
+        kept += 1;
+        cleaned += char;
+      });
+
+      return { cleaned, grouped, total: characters.length, removed, replaced, kept };
+    }
+
+    function showCharacterDetails(rule) {
+      const replacement = rule.action === 'replace' ? ` → ${JSON.stringify(rule.replacement)}` : '';
+      charDetails.textContent = `${codePointHex(rule.codePoint)} - ${rule.name}; ${actionName(rule.action)}${replacement}.`;
+    }
+
+    function renderHighlight(text) {
+      highlighted.replaceChildren();
+      highlighted.classList.remove('empty');
+
+      if (!text) {
+        highlighted.classList.add('empty');
+        highlighted.textContent = 'Здесь появится текст с отмеченными символами.';
+        return;
+      }
+
+      const fragment = document.createDocumentFragment();
+
+      for (const char of Array.from(text)) {
+        const rule = classifyCharacter(char);
+
+        if (!rule) {
+          fragment.appendChild(document.createTextNode(char));
+          continue;
+        }
+
+        const token = document.createElement('button');
+        token.type = 'button';
+        token.className = `char ${rule.action}`;
+        token.textContent = `[${codePointHex(rule.codePoint)}]`;
+        token.title = `${rule.name} (${codePointHex(rule.codePoint)}) - ${actionName(rule.action)}`;
+        token.setAttribute('aria-label', token.title);
+        token.addEventListener('click', () => showCharacterDetails(rule));
+        fragment.appendChild(token);
+      }
+
+      highlighted.appendChild(fragment);
+    }
+
+    function renderReport(result) {
+      charList.replaceChildren();
+
+      if (result.grouped.size === 0) {
+        const li = document.createElement('li');
+        li.textContent = 'Скрытых или необычных символов не найдено';
+        charList.appendChild(li);
+        return;
+      }
+
+      for (const item of result.grouped.values()) {
+        const li = document.createElement('li');
+        const action = document.createElement('span');
+        action.className = `report-action ${item.action}`;
+        action.textContent = actionName(item.action);
+
+        li.append(
+          document.createTextNode(`${codePointHex(item.codePoint)} ${item.name}: ${item.positions.length} шт. - `),
+          action,
+          document.createTextNode(` (позиции: ${item.positions.join(', ')})`)
+        );
+
+        charList.appendChild(li);
       }
     }
-    invisibleChars[String.fromCharCode(127)] = 'Delete';
 
-    const zwsRegex  = /[\u200B-\u200F\uFEFF\u2060]/g;
-    const ctrlRegex = /[\x00-\x08\x0B-\x0C\x0E-\x1F\x7F]/g;
+    function handleInput() {
+      const text = input.value;
 
-    function handleInput(){
-      const t = document.getElementById('input').value;
-      document.getElementById('output').value = t
-        .replace(/\u00A0/g,' ')
-        .replace(/\u2014/g,'-')
-        .replace(zwsRegex,'')
-        .replace(ctrlRegex,'');
-      updateCounter(t); updateHighlight(t); updateList(t);
+      if (!text) {
+        output.value = '';
+        counter.textContent = 'Вставьте текст для проверки';
+        renderHighlight('');
+        charDetails.textContent = 'Нажмите на отмеченный символ, чтобы увидеть его название и действие.';
+        charList.replaceChildren();
+        const li = document.createElement('li');
+        li.textContent = 'Скрытых или необычных символов не найдено';
+        charList.appendChild(li);
+        return;
+      }
+
+      const result = analyseText(text);
+      output.value = result.cleaned;
+
+      const found = result.removed + result.replaced + result.kept;
+      const parts = [
+        `Всего символов: ${result.total}`,
+        `Найдено: ${found}`,
+        `Удалится: ${result.removed}`,
+        `Заменится: ${result.replaced}`
+      ];
+
+      if (result.kept > 0) parts.push(`Сохранится: ${result.kept}`);
+
+      counter.textContent = parts.join(' | ');
+      renderHighlight(text);
+      renderReport(result);
     }
 
-    function updateCounter(t){
-      const total = t.length;
-      const bad = (t.match(zwsRegex)||[]).length + (t.match(ctrlRegex)||[]).length;
-      document.getElementById('counter').textContent =
-        `Всего символов: ${total} | Подозрительных: ${bad}`;
+    function showCopyStatus(message) {
+      copyStatus.textContent = message;
+      window.setTimeout(() => {
+        if (copyStatus.textContent === message) copyStatus.textContent = '';
+      }, 1600);
     }
 
-    function updateHighlight(t){
-      const html = [...t].map(c=>{
-        if(invisibleChars[c]){
-          const code = c.charCodeAt(0).toString(16).toUpperCase().padStart(4,'0');
-          return `<span class="highlight">[U+${code}]</span>`;
-        }
-        return c.replace(/</g,'&lt;').replace(/>/g,'&gt;');
-      }).join('');
-      document.getElementById('highlighted').innerHTML = html;
-      document.getElementById('highlighted').onclick = e=>{
-        if(e.target.classList.contains('highlight')){
-          const code = e.target.textContent.match(/U\+([0-9A-F]{4})/)[1];
-          const ch = String.fromCharCode(parseInt(code,16));
-          alert(`Код: U+${code}\nНазвание: ${invisibleChars[ch]}`);
-        }
-      };
+    async function copyOutput() {
+      if (!output.value) return;
+
+      try {
+        await navigator.clipboard.writeText(output.value);
+        showCopyStatus('Скопировано');
+      } catch {
+        output.select();
+        const copied = document.execCommand('copy');
+        showCopyStatus(copied ? 'Скопировано' : 'Не удалось скопировать');
+      }
     }
 
-    function updateList(t){
-      const map = {};
-      [...t].forEach((c,i)=>{
-        if(invisibleChars[c]){
-          (map[c]||(map[c]=[])).push(i+1);
-        }
-      });
-      const ul = document.getElementById('charList');
-      ul.innerHTML = Object.entries(map).map(([c,pos])=>{
-        const code = c.charCodeAt(0).toString(16).toUpperCase().padStart(4,'0');
-        return `<li>[U+${code}] ${invisibleChars[c]}: ${pos.length} шт. (позиции: ${pos.join(', ')})</li>`;
-      }).join('') || '<li>Скрытых символов не найдено</li>';
+    function clearInput() {
+      input.value = '';
+      output.value = '';
+      copyStatus.textContent = '';
+      handleInput();
+      input.focus();
     }
 
-    function copyOutput(){
-      const o = document.getElementById('output');
-      o.select(); document.execCommand('copy');
-      alert('Текст скопирован!');
+    function systemPrefersDark() {
+      return window.matchMedia('(prefers-color-scheme: dark)').matches;
     }
 
-    function clearInput(){
-      ['input','output'].forEach(id=>document.getElementById(id).value='');
-      ['counter','highlighted','charList'].forEach(id=>document.getElementById(id).textContent='');
+    function applyTheme(theme) {
+      document.body.classList.toggle('dark', theme === 'dark');
+      themeToggle.textContent = theme === 'dark' ? '☀️' : '🌙';
+      themeToggle.title = theme === 'dark' ? 'Включить светлую тему' : 'Включить тёмную тему';
+      themeToggle.setAttribute('aria-label', themeToggle.title);
     }
+
+    function loadTheme() {
+      const saved = localStorage.getItem('zws-cleaner-theme');
+      applyTheme(saved || (systemPrefersDark() ? 'dark' : 'light'));
+    }
+
+    function toggleTheme() {
+      const next = document.body.classList.contains('dark') ? 'light' : 'dark';
+      localStorage.setItem('zws-cleaner-theme', next);
+      applyTheme(next);
+    }
+
+    const schemeQuery = window.matchMedia('(prefers-color-scheme: dark)');
+    schemeQuery.addEventListener?.('change', () => {
+      if (!localStorage.getItem('zws-cleaner-theme')) {
+        applyTheme(systemPrefersDark() ? 'dark' : 'light');
+      }
+    });
+
+    input.addEventListener('input', handleInput);
+    copyButton.addEventListener('click', copyOutput);
+    clearButton.addEventListener('click', clearInput);
+    themeToggle.addEventListener('click', toggleTheme);
+
+    loadTheme();
   </script>
 </body>
 </html>
