@@ -1,497 +1,122 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ru">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="color-scheme" content="light dark">
-  <meta name="description" content="Локальный инструмент для поиска, анализа и очистки скрытых и необычных Unicode-символов.">
-  <title>Очистка скрытых символов</title>
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ctext y='50' font-size='48'%3E🧹%3C/text%3E%3C/svg%3E">
-  <style>
-    :root {
-      --bg: #f7f7f8;
-      --surface: #ffffff;
-      --text: #1f2328;
-      --muted: #656d76;
-      --border: #d0d7de;
-      --button-hover: #f3f4f6;
-      --remove-bg: #ffdddd;
-      --remove-text: #8a1c1c;
-      --replace-bg: #fff1ad;
-      --replace-text: #6b5600;
-      --keep-bg: #dcecff;
-      --keep-text: #1d4f7a;
-      --success: #18794e;
-      --focus: #0969da;
-    }
-
-    body.dark {
-      --bg: #17181a;
-      --surface: #222326;
-      --text: #e6e6e6;
-      --muted: #a6a6a6;
-      --border: #44474c;
-      --button-hover: #2c2e32;
-      --remove-bg: #5e3030;
-      --remove-text: #ffd1d1;
-      --replace-bg: #5d5326;
-      --replace-text: #fff2aa;
-      --keep-bg: #29465f;
-      --keep-text: #d3ebff;
-      --success: #6fdd9f;
-      --focus: #58a6ff;
-    }
-
-    *, *::before, *::after { box-sizing: border-box; }
-
-    body {
-      max-width: 920px;
-      margin: 0 auto;
-      padding: 24px 20px 40px;
-      background: var(--bg);
-      color: var(--text);
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      line-height: 1.5;
-    }
-
-    .topbar {
-      display: flex;
-      align-items: flex-start;
-      justify-content: space-between;
-      gap: 16px;
-      margin-bottom: 18px;
-    }
-
-    h1 { margin: 0 0 6px; font-size: 28px; line-height: 1.2; }
-    h2 { margin: 26px 0 10px; font-size: 18px; }
-    p { margin: 0 0 10px; }
-
-    .description, .privacy, .counter, .details, .empty { color: var(--muted); }
-    .privacy { font-size: 13px; }
-
-    .panel {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: 14px;
-    }
-
-    textarea {
-      width: 100%;
-      min-height: 150px;
-      padding: 12px;
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      background: var(--surface);
-      color: var(--text);
-      font: 14px/1.5 ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-      resize: vertical;
-    }
-
-    textarea:focus-visible, button:focus-visible {
-      outline: 2px solid var(--focus);
-      outline-offset: 2px;
-    }
-
-    #output { min-height: 120px; }
-    .counter { margin: 8px 0 12px; font-size: 14px; }
-
-    .actions {
-      display: flex;
-      flex-wrap: wrap;
-      align-items: center;
-      gap: 8px;
-      margin-bottom: 2px;
-    }
-
-    button {
-      padding: 9px 14px;
-      border: 1px solid var(--border);
-      border-radius: 7px;
-      background: var(--surface);
-      color: var(--text);
-      font: inherit;
-      cursor: pointer;
-    }
-
-    button:hover { background: var(--button-hover); }
-
-    #themeToggle {
-      flex: 0 0 auto;
-      padding: 7px 10px;
-      font-size: 16px;
-      line-height: 1;
-    }
-
-    #copyStatus { min-height: 1em; color: var(--success); font-size: 13px; }
-
-    .legend {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-      margin: 0 0 10px;
-      font-size: 13px;
-    }
-
-    .badge, .char {
-      display: inline-block;
-      border-radius: 5px;
-      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-    }
-
-    .badge { padding: 3px 7px; }
-
-    .char {
-      margin: 0 1px;
-      padding: 1px 4px;
-      border: 0;
-      font-size: inherit;
-      font-weight: 650;
-      cursor: pointer;
-    }
-
-    .remove { background: var(--remove-bg); color: var(--remove-text); }
-    .replace { background: var(--replace-bg); color: var(--replace-text); }
-    .keep { background: var(--keep-bg); color: var(--keep-text); }
-
-    #highlighted {
-      min-height: 54px;
-      white-space: pre-wrap;
-      overflow-wrap: anywhere;
-      font: 14px/1.6 ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-    }
-
-    .details { min-height: 1.5em; margin-top: 9px; font-size: 13px; }
-    #charList { margin: 0; padding-left: 22px; }
-    #charList li { margin: 5px 0; }
-    .report-action { font-weight: 600; }
-
-    @media (max-width: 640px) {
-      body { padding: 18px 14px 32px; }
-      h1 { font-size: 24px; }
-      .topbar { gap: 10px; }
-      .actions button { flex: 1 1 auto; }
-    }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<meta name="description" content="Локальный инструмент для поиска, анализа и очистки скрытых и необычных Unicode-символов.">
+<title>Очистка скрытых символов</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ctext y='50' font-size='48'%3E🧹%3C/text%3E%3C/svg%3E">
+<style>
+:root{--bg:#f3f6fb;--bg2:#edf5ff;--card:rgba(255,255,255,.88);--card-strong:#fff;--text:#1f2937;--muted:#64748b;--line:rgba(100,116,139,.2);--shadow:0 14px 38px rgba(15,23,42,.08);--primary:#2563eb;--primary-2:#1d4ed8;--ok:#15803d;--okbg:#dcfce7;--remove-bg:#ffe2e2;--remove-t:#9f1239;--replace-bg:#fff1b8;--replace-t:#8a5b00;--keep-bg:#dff1ff;--keep-t:#0f5f92;--focus:rgba(37,99,235,.35)}
+body.dark{--bg:#0f172a;--bg2:#111c34;--card:rgba(15,23,42,.82);--card-strong:#111827;--text:#e5eefb;--muted:#9db0c9;--line:rgba(148,163,184,.18);--shadow:0 18px 42px rgba(2,6,23,.35);--primary:#60a5fa;--primary-2:#3b82f6;--ok:#86efac;--okbg:rgba(34,197,94,.14);--remove-bg:#4f2533;--remove-t:#ffd6df;--replace-bg:#5d4b15;--replace-t:#ffe8a6;--keep-bg:#163e5b;--keep-t:#d5eeff;--focus:rgba(96,165,250,.38)}
+*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;min-height:100vh;background:radial-gradient(circle at top left,rgba(59,130,246,.14),transparent 30%),radial-gradient(circle at top right,rgba(16,185,129,.12),transparent 24%),linear-gradient(180deg,var(--bg),var(--bg2));color:var(--text);font:15px/1.55 system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+.wrapper{max-width:1080px;margin:0 auto;padding:24px 16px 40px}.hero,.card{background:var(--card);border:1px solid var(--line);box-shadow:var(--shadow);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)}.hero{display:grid;grid-template-columns:1fr auto;gap:16px;padding:24px;border-radius:26px;margin-bottom:18px}.hero h1{margin:8px 0 10px;font-size:clamp(30px,5vw,42px);line-height:1.05;letter-spacing:-.03em}.hero p{margin:0;color:var(--muted);max-width:760px}.eyebrow,.pill,.legend span,.toast,.counter{display:inline-flex;align-items:center;gap:8px;padding:8px 12px;border:1px solid var(--line);border-radius:999px;background:rgba(255,255,255,.36);color:var(--muted);font-size:13px;font-weight:600}.meta{display:flex;flex-wrap:wrap;gap:10px;margin-top:16px}.theme{min-width:46px;height:46px;border-radius:14px}.grid{display:grid;grid-template-columns:1.1fr .9fr;gap:18px}.stack{display:grid;gap:18px}.card{padding:18px;border-radius:22px}.card h2{margin:0;font-size:18px}.sub{margin:4px 0 0;color:var(--muted);font-size:13px}.head{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:12px}textarea{width:100%;min-height:230px;padding:14px 15px;border:1px solid var(--line);border-radius:16px;background:var(--card-strong);color:var(--text);font:14px/1.65 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;resize:vertical}textarea::placeholder{color:var(--muted)}textarea:focus-visible,button:focus-visible,.char:focus-visible{outline:none;box-shadow:0 0 0 4px var(--focus);border-color:transparent}.actions{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-top:14px}button{appearance:none;border:1px solid var(--line);background:transparent;color:var(--text);padding:10px 14px;border-radius:14px;font:inherit;font-weight:650;cursor:pointer;transition:.18s ease}button:hover{transform:translateY(-1px);background:rgba(255,255,255,.12)}.primary{background:var(--primary);border-color:transparent;color:#fff}.primary:hover{background:var(--primary-2)}body.dark .primary{color:#07111f}.counter{margin-top:14px;padding:10px 14px;min-height:42px}.toast{background:var(--okbg);color:var(--ok)}#highlighted{min-height:150px;padding:14px;border-radius:18px;border:1px dashed var(--line);background:var(--card-strong);white-space:pre-wrap;overflow-wrap:anywhere;font:14px/1.75 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}.legend{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px}.legend span,.badge,.char{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-weight:700}.badge,.char{display:inline-flex;align-items:center;justify-content:center;border-radius:999px}.char{margin:1px 2px;padding:4px 10px;border:0;font-size:12px}.remove{background:var(--remove-bg);color:var(--remove-t)}.replace{background:var(--replace-bg);color:var(--replace-t)}.keep{background:var(--keep-bg);color:var(--keep-t)}.details,.note{margin-top:12px;padding:12px 14px;border:1px solid var(--line);border-radius:16px;background:rgba(255,255,255,.08);color:var(--muted);font-size:13px}.report{margin:0;padding-left:20px}.report li{margin:0 0 10px;color:var(--muted)}.report strong{color:var(--text)}.empty{color:var(--muted)}
+@media (max-width:900px){.hero,.grid{grid-template-columns:1fr}.hero{padding:18px}}@media (max-width:560px){.wrapper{padding:14px 12px 28px}.card,.hero{border-radius:18px;padding:14px}.actions button{flex:1 1 100%}}
+</style>
 </head>
 <body>
-  <div class="topbar">
+<div class="wrapper">
+  <section class="hero">
     <div>
-      <h1>🧹 Очистка скрытых символов</h1>
-      <p class="description">Вставьте текст - необычные Unicode-символы будут найдены, а безопасный результат подготовится автоматически.</p>
-      <p class="privacy">Всё работает локально в браузере. Текст никуда не отправляется.</p>
+      <span class="eyebrow">🛡️ Локальная обработка • ничего никуда не уходит</span>
+      <h1>Очистка скрытых символов</h1>
+      <p>Вставьте текст - инструмент найдёт подозрительные Unicode-символы, покажет их позиции и подготовит очищенную версию. Без лишней драмы и без дизайна времён VHS.</p>
+      <div class="meta">
+        <span class="pill">🔎 Zero-width, bidi и control chars</span>
+        <span class="pill">🔁 Замена необычных пробелов и тире</span>
+        <span class="pill">📋 Быстрое копирование результата</span>
+      </div>
     </div>
-    <button id="themeToggle" type="button" aria-label="Переключить тему" title="Переключить тему">🌓</button>
+    <div><button id="themeToggle" class="theme" type="button" aria-label="Переключить тему" title="Переключить тему">🌓</button></div>
+  </section>
+
+  <div class="grid">
+    <section class="card">
+      <div class="head"><div><h2>Исходный текст</h2><p class="sub">Вставьте текст для анализа</p></div></div>
+      <textarea id="input" placeholder="Вставьте текст сюда..." spellcheck="false" aria-label="Исходный текст"></textarea>
+      <div id="counter" class="counter">Вставьте текст для проверки</div>
+      <div class="actions">
+        <button id="copyButton" class="primary" type="button">📋 Скопировать очищенный текст</button>
+        <button id="clearButton" type="button">🗑 Очистить</button>
+        <span id="copyStatus" class="toast" hidden>Скопировано</span>
+      </div>
+    </section>
+
+    <section class="card stack">
+      <div>
+        <div class="head"><div><h2>Очищенный текст</h2><p class="sub">Результат обновляется автоматически</p></div></div>
+        <textarea id="output" readonly placeholder="Здесь появится очищенный текст" aria-label="Очищенный текст"></textarea>
+        <div class="note">Если символ отмечен как <strong>сохраняется</strong>, он останется и в очищенном тексте. Это специально - чтобы не ломать нормальные Unicode-последовательности вроде ZWJ/ZWNJ.</div>
+      </div>
+    </section>
   </div>
 
-  <textarea id="input" placeholder="Вставьте текст сюда..." spellcheck="false" aria-label="Исходный текст"></textarea>
-  <div class="counter" id="counter">Вставьте текст для проверки</div>
+  <div class="grid" style="margin-top:18px">
+    <section class="card">
+      <div class="head"><div><h2>Найденные символы</h2><p class="sub">Нажмите на пометку, чтобы увидеть подробности</p></div></div>
+      <div class="legend"><span class="remove">Удаляется</span><span class="replace">Заменяется</span><span class="keep">Сохраняется</span></div>
+      <div id="highlighted" class="empty">Здесь появится текст с отмеченными символами.</div>
+      <div id="charDetails" class="details">Подсказка: кликните по метке вида [U+XXXX], чтобы увидеть название символа и действие с ним.</div>
+    </section>
 
-  <div class="actions">
-    <button id="copyButton" type="button">📋 Скопировать очищенный текст</button>
-    <button id="clearButton" type="button">🗑 Очистить</button>
-    <span id="copyStatus" role="status" aria-live="polite"></span>
+    <section class="card">
+      <div class="head"><div><h2>Отчёт</h2><p class="sub">Количество, типы и позиции найденных символов</p></div></div>
+      <ul id="charList" class="report"><li>Скрытых или необычных символов не найдено.</li></ul>
+    </section>
   </div>
+</div>
 
-  <h2>Найденные символы</h2>
-  <div class="legend" aria-label="Обозначения">
-    <span class="badge remove">Удаляется</span>
-    <span class="badge replace">Заменяется</span>
-    <span class="badge keep">Сохраняется</span>
-  </div>
-  <div class="panel">
-    <div id="highlighted" class="empty">Здесь появится текст с отмеченными символами.</div>
-    <div id="charDetails" class="details">Нажмите на отмеченный символ, чтобы увидеть его название и действие.</div>
-  </div>
+<script>
+const input=document.getElementById('input');
+const output=document.getElementById('output');
+const counter=document.getElementById('counter');
+const highlighted=document.getElementById('highlighted');
+const charDetails=document.getElementById('charDetails');
+const charList=document.getElementById('charList');
+const copyButton=document.getElementById('copyButton');
+const clearButton=document.getElementById('clearButton');
+const copyStatus=document.getElementById('copyStatus');
+const themeToggle=document.getElementById('themeToggle');
 
-  <h2>Отчёт</h2>
-  <div class="panel">
-    <ul id="charList">
-      <li>Скрытых или необычных символов не найдено</li>
-    </ul>
-  </div>
-
-  <h2>Очищенный текст</h2>
-  <textarea id="output" readonly placeholder="Здесь появится очищенный текст" aria-label="Очищенный текст"></textarea>
-
-  <script>
-    const input = document.getElementById('input');
-    const output = document.getElementById('output');
-    const counter = document.getElementById('counter');
-    const highlighted = document.getElementById('highlighted');
-    const charDetails = document.getElementById('charDetails');
-    const charList = document.getElementById('charList');
-    const copyButton = document.getElementById('copyButton');
-    const clearButton = document.getElementById('clearButton');
-    const copyStatus = document.getElementById('copyStatus');
-    const themeToggle = document.getElementById('themeToggle');
-
-    const rules = new Map([
-      [0x00A0, { name: 'Non-breaking Space', action: 'replace', replacement: ' ' }],
-      [0x202F, { name: 'Narrow No-Break Space', action: 'replace', replacement: ' ' }],
-      [0x2007, { name: 'Figure Space', action: 'replace', replacement: ' ' }],
-      [0x2014, { name: 'Em Dash', action: 'replace', replacement: '-' }],
-      [0x2013, { name: 'En Dash', action: 'replace', replacement: '-' }],
-      [0x2212, { name: 'Minus Sign', action: 'replace', replacement: '-' }],
-      [0x200B, { name: 'Zero Width Space', action: 'remove' }],
-      [0xFEFF, { name: 'Zero Width No-Break Space / BOM', action: 'remove' }],
-      [0x2060, { name: 'Word Joiner', action: 'remove' }],
-      [0x00AD, { name: 'Soft Hyphen', action: 'remove' }],
-      [0x061C, { name: 'Arabic Letter Mark', action: 'remove' }],
-      [0x200E, { name: 'Left-to-Right Mark', action: 'remove' }],
-      [0x200F, { name: 'Right-to-Left Mark', action: 'remove' }],
-      [0x200C, { name: 'Zero Width Non-Joiner', action: 'keep' }],
-      [0x200D, { name: 'Zero Width Joiner', action: 'keep' }]
-    ]);
-
-    const bidiRanges = [
-      [0x202A, 0x202E],
-      [0x2066, 0x2069],
-      [0x206A, 0x206F]
-    ];
-
-    function codePointHex(codePoint) {
-      return `U+${codePoint.toString(16).toUpperCase().padStart(4, '0')}`;
-    }
-
-    function isBidiControl(codePoint) {
-      return bidiRanges.some(([start, end]) => codePoint >= start && codePoint <= end);
-    }
-
-    function isBadAsciiControl(codePoint) {
-      return (
-        (codePoint >= 0x00 && codePoint <= 0x08) ||
-        codePoint === 0x0B ||
-        codePoint === 0x0C ||
-        (codePoint >= 0x0E && codePoint <= 0x1F) ||
-        codePoint === 0x7F
-      );
-    }
-
-    function classifyCharacter(char) {
-      const codePoint = char.codePointAt(0);
-
-      if (rules.has(codePoint)) {
-        return { codePoint, ...rules.get(codePoint) };
-      }
-
-      if (isBidiControl(codePoint)) {
-        return { codePoint, name: 'Bidirectional Control Character', action: 'remove' };
-      }
-
-      if (isBadAsciiControl(codePoint)) {
-        return { codePoint, name: 'ASCII Control Character', action: 'remove' };
-      }
-
-      return null;
-    }
-
-    function actionName(action) {
-      if (action === 'remove') return 'удаляется';
-      if (action === 'replace') return 'заменяется';
-      return 'сохраняется';
-    }
-
-    function analyseText(text) {
-      const characters = Array.from(text);
-      const grouped = new Map();
-      let cleaned = '';
-      let removed = 0;
-      let replaced = 0;
-      let kept = 0;
-
-      characters.forEach((char, index) => {
-        const rule = classifyCharacter(char);
-
-        if (!rule) {
-          cleaned += char;
-          return;
-        }
-
-        const key = `${rule.codePoint}-${rule.action}`;
-        if (!grouped.has(key)) {
-          grouped.set(key, { ...rule, positions: [] });
-        }
-        grouped.get(key).positions.push(index + 1);
-
-        if (rule.action === 'remove') {
-          removed += 1;
-          return;
-        }
-
-        if (rule.action === 'replace') {
-          replaced += 1;
-          cleaned += rule.replacement;
-          return;
-        }
-
-        kept += 1;
-        cleaned += char;
-      });
-
-      return { cleaned, grouped, total: characters.length, removed, replaced, kept };
-    }
-
-    function showCharacterDetails(rule) {
-      const replacement = rule.action === 'replace' ? ` → ${JSON.stringify(rule.replacement)}` : '';
-      charDetails.textContent = `${codePointHex(rule.codePoint)} - ${rule.name}; ${actionName(rule.action)}${replacement}.`;
-    }
-
-    function renderHighlight(text) {
-      highlighted.replaceChildren();
-      highlighted.classList.remove('empty');
-
-      if (!text) {
-        highlighted.classList.add('empty');
-        highlighted.textContent = 'Здесь появится текст с отмеченными символами.';
-        return;
-      }
-
-      const fragment = document.createDocumentFragment();
-
-      for (const char of Array.from(text)) {
-        const rule = classifyCharacter(char);
-
-        if (!rule) {
-          fragment.appendChild(document.createTextNode(char));
-          continue;
-        }
-
-        const token = document.createElement('button');
-        token.type = 'button';
-        token.className = `char ${rule.action}`;
-        token.textContent = `[${codePointHex(rule.codePoint)}]`;
-        token.title = `${rule.name} (${codePointHex(rule.codePoint)}) - ${actionName(rule.action)}`;
-        token.setAttribute('aria-label', token.title);
-        token.addEventListener('click', () => showCharacterDetails(rule));
-        fragment.appendChild(token);
-      }
-
-      highlighted.appendChild(fragment);
-    }
-
-    function renderReport(result) {
-      charList.replaceChildren();
-
-      if (result.grouped.size === 0) {
-        const li = document.createElement('li');
-        li.textContent = 'Скрытых или необычных символов не найдено';
-        charList.appendChild(li);
-        return;
-      }
-
-      for (const item of result.grouped.values()) {
-        const li = document.createElement('li');
-        const action = document.createElement('span');
-        action.className = `report-action ${item.action}`;
-        action.textContent = actionName(item.action);
-
-        li.append(
-          document.createTextNode(`${codePointHex(item.codePoint)} ${item.name}: ${item.positions.length} шт. - `),
-          action,
-          document.createTextNode(` (позиции: ${item.positions.join(', ')})`)
-        );
-
-        charList.appendChild(li);
-      }
-    }
-
-    function handleInput() {
-      const text = input.value;
-
-      if (!text) {
-        output.value = '';
-        counter.textContent = 'Вставьте текст для проверки';
-        renderHighlight('');
-        charDetails.textContent = 'Нажмите на отмеченный символ, чтобы увидеть его название и действие.';
-        charList.replaceChildren();
-        const li = document.createElement('li');
-        li.textContent = 'Скрытых или необычных символов не найдено';
-        charList.appendChild(li);
-        return;
-      }
-
-      const result = analyseText(text);
-      output.value = result.cleaned;
-
-      const found = result.removed + result.replaced + result.kept;
-      const parts = [
-        `Всего символов: ${result.total}`,
-        `Найдено: ${found}`,
-        `Удалится: ${result.removed}`,
-        `Заменится: ${result.replaced}`
-      ];
-
-      if (result.kept > 0) parts.push(`Сохранится: ${result.kept}`);
-
-      counter.textContent = parts.join(' | ');
-      renderHighlight(text);
-      renderReport(result);
-    }
-
-    function showCopyStatus(message) {
-      copyStatus.textContent = message;
-      window.setTimeout(() => {
-        if (copyStatus.textContent === message) copyStatus.textContent = '';
-      }, 1600);
-    }
-
-    async function copyOutput() {
-      if (!output.value) return;
-
-      try {
-        await navigator.clipboard.writeText(output.value);
-        showCopyStatus('Скопировано');
-      } catch {
-        output.select();
-        const copied = document.execCommand('copy');
-        showCopyStatus(copied ? 'Скопировано' : 'Не удалось скопировать');
-      }
-    }
-
-    function clearInput() {
-      input.value = '';
-      output.value = '';
-      copyStatus.textContent = '';
-      handleInput();
-      input.focus();
-    }
-
-    function systemPrefersDark() {
-      return window.matchMedia('(prefers-color-scheme: dark)').matches;
-    }
-
-    function applyTheme(theme) {
-      document.body.classList.toggle('dark', theme === 'dark');
-      themeToggle.textContent = theme === 'dark' ? '☀️' : '🌙';
-      themeToggle.title = theme === 'dark' ? 'Включить светлую тему' : 'Включить тёмную тему';
-      themeToggle.setAttribute('aria-label', themeToggle.title);
-    }
-
-    function loadTheme() {
-      const saved = localStorage.getItem('zws-cleaner-theme');
-      applyTheme(saved || (systemPrefersDark() ? 'dark' : 'light'));
-    }
-
-    function toggleTheme() {
-      const next = document.body.classList.contains('dark') ? 'light' : 'dark';
-      localStorage.setItem('zws-cleaner-theme', next);
-      applyTheme(next);
-    }
-
-    const schemeQuery = window.matchMedia('(prefers-color-scheme: dark)');
-    schemeQuery.addEventListener?.('change', () => {
-      if (!localStorage.getItem('zws-cleaner-theme')) {
-        applyTheme(systemPrefersDark() ? 'dark' : 'light');
-      }
-    });
-
-    input.addEventListener('input', handleInput);
-    copyButton.addEventListener('click', copyOutput);
-    clearButton.addEventListener('click', clearInput);
-    themeToggle.addEventListener('click', toggleTheme);
-
-    loadTheme();
-  </script>
+const rules=new Map([
+  [0x00A0,{name:'Non-breaking Space',action:'replace',replacement:' '}],
+  [0x202F,{name:'Narrow No-Break Space',action:'replace',replacement:' '}],
+  [0x2007,{name:'Figure Space',action:'replace',replacement:' '}],
+  [0x2014,{name:'Em Dash',action:'replace',replacement:'-'}],
+  [0x2013,{name:'En Dash',action:'replace',replacement:'-'}],
+  [0x2212,{name:'Minus Sign',action:'replace',replacement:'-'}],
+  [0x200B,{name:'Zero Width Space',action:'remove'}],
+  [0xFEFF,{name:'Zero Width No-Break Space / BOM',action:'remove'}],
+  [0x2060,{name:'Word Joiner',action:'remove'}],
+  [0x00AD,{name:'Soft Hyphen',action:'remove'}],
+  [0x061C,{name:'Arabic Letter Mark',action:'remove'}],
+  [0x200E,{name:'Left-to-Right Mark',action:'remove'}],
+  [0x200F,{name:'Right-to-Left Mark',action:'remove'}],
+  [0x200C,{name:'Zero Width Non-Joiner',action:'keep'}],
+  [0x200D,{name:'Zero Width Joiner',action:'keep'}]
+]);
+const bidiRanges=[[0x202A,0x202E],[0x2066,0x2069],[0x206A,0x206F]];
+const codePointHex=cp=>`U+${cp.toString(16).toUpperCase().padStart(4,'0')}`;
+const actionName=action=>action==='remove'?'удаляется':action==='replace'?'заменяется':'сохраняется';
+const isBidiControl=cp=>bidiRanges.some(([s,e])=>cp>=s&&cp<=e);
+const isBadAsciiControl=cp=>(cp>=0x00&&cp<=0x08)||cp===0x0B||cp===0x0C||(cp>=0x0E&&cp<=0x1F)||cp===0x7F;
+function classifyCharacter(char){const cp=char.codePointAt(0);if(rules.has(cp))return{codePoint:cp,...rules.get(cp)};if(isBidiControl(cp))return{codePoint:cp,name:'Bidirectional Control Character',action:'remove'};if(isBadAsciiControl(cp))return{codePoint:cp,name:'ASCII Control Character',action:'remove'};return null;}
+function analyseText(text){const chars=Array.from(text),grouped=new Map();let cleaned='',removed=0,replaced=0,kept=0;chars.forEach((char,index)=>{const rule=classifyCharacter(char);if(!rule){cleaned+=char;return;}const key=`${rule.codePoint}-${rule.action}`;if(!grouped.has(key))grouped.set(key,{...rule,positions:[]});grouped.get(key).positions.push(index+1);if(rule.action==='remove'){removed+=1;return;}if(rule.action==='replace'){replaced+=1;cleaned+=rule.replacement;return;}kept+=1;cleaned+=char;});return{cleaned,grouped,total:chars.length,removed,replaced,kept};}
+function resetView(){output.value='';counter.textContent='Вставьте текст для проверки';highlighted.className='empty';highlighted.textContent='Здесь появится текст с отмеченными символами.';charDetails.textContent='Подсказка: кликните по метке вида [U+XXXX], чтобы увидеть название символа и действие с ним.';charList.replaceChildren();const li=document.createElement('li');li.textContent='Скрытых или необычных символов не найдено.';charList.appendChild(li);}
+function showCharacterDetails(rule){const replacement=rule.action==='replace'?` → ${JSON.stringify(rule.replacement)}`:'';charDetails.textContent=`${codePointHex(rule.codePoint)} - ${rule.name}; ${actionName(rule.action)}${replacement}.`;}
+function renderHighlight(text){highlighted.replaceChildren();highlighted.className='';if(!text){highlighted.className='empty';highlighted.textContent='Здесь появится текст с отмеченными символами.';return;}const fragment=document.createDocumentFragment();for(const char of Array.from(text)){const rule=classifyCharacter(char);if(!rule){fragment.appendChild(document.createTextNode(char));continue;}const token=document.createElement('button');token.type='button';token.className=`char ${rule.action}`;token.textContent=`[${codePointHex(rule.codePoint)}]`;token.title=`${rule.name} (${codePointHex(rule.codePoint)}) - ${actionName(rule.action)}`;token.setAttribute('aria-label',token.title);token.addEventListener('click',()=>showCharacterDetails(rule));fragment.appendChild(token);}highlighted.appendChild(fragment);}
+function renderReport(result){charList.replaceChildren();if(result.grouped.size===0){const li=document.createElement('li');li.textContent='Скрытых или необычных символов не найдено.';charList.appendChild(li);return;}for(const item of result.grouped.values()){const li=document.createElement('li');const strong=document.createElement('strong');strong.textContent=`${codePointHex(item.codePoint)} ${item.name}`;const action=document.createElement('span');action.className=`${item.action}`;action.textContent=actionName(item.action);li.append(strong,document.createTextNode(` - ${item.positions.length} шт.; `),action,document.createTextNode(` (позиции: ${item.positions.join(', ')})`));charList.appendChild(li);}}
+function handleInput(){const text=input.value;if(!text){resetView();return;}const result=analyseText(text);output.value=result.cleaned;const found=result.removed+result.replaced+result.kept;counter.textContent=`Всего символов: ${result.total} • Найдено: ${found} • Удалится: ${result.removed} • Заменится: ${result.replaced}${result.kept?` • Сохранится: ${result.kept}`:''}`;renderHighlight(text);renderReport(result);}
+function showCopyStatus(message){copyStatus.hidden=false;copyStatus.textContent=message;window.setTimeout(()=>{if(copyStatus.textContent===message){copyStatus.hidden=true;copyStatus.textContent='';}},1700);}
+async function copyOutput(){if(!output.value)return;try{await navigator.clipboard.writeText(output.value);showCopyStatus('Скопировано');}catch{output.select();const copied=document.execCommand('copy');showCopyStatus(copied?'Скопировано':'Не удалось скопировать');}}
+function clearInput(){input.value='';copyStatus.hidden=true;copyStatus.textContent='';resetView();input.focus();}
+function systemPrefersDark(){return window.matchMedia('(prefers-color-scheme: dark)').matches;}
+function applyTheme(theme){document.body.classList.toggle('dark',theme==='dark');const isDark=theme==='dark';themeToggle.textContent=isDark?'☀️':'🌙';themeToggle.title=isDark?'Включить светлую тему':'Включить тёмную тему';themeToggle.setAttribute('aria-label',themeToggle.title);}
+function loadTheme(){const saved=localStorage.getItem('zws-cleaner-theme');applyTheme(saved||(systemPrefersDark()?'dark':'light'));}
+function toggleTheme(){const next=document.body.classList.contains('dark')?'light':'dark';localStorage.setItem('zws-cleaner-theme',next);applyTheme(next);}
+window.matchMedia('(prefers-color-scheme: dark)').addEventListener?.('change',()=>{if(!localStorage.getItem('zws-cleaner-theme'))applyTheme(systemPrefersDark()?'dark':'light');});
+input.addEventListener('input',handleInput);copyButton.addEventListener('click',copyOutput);clearButton.addEventListener('click',clearInput);themeToggle.addEventListener('click',toggleTheme);loadTheme();resetView();
+</script>
 </body>
 </html>
